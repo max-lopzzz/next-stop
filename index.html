@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Sistema de Transporte - Tiempo Real</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <!-- Chart.js desde CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+</head>
+<body>
+    <div class="app">
+        <!-- Header -->
+        <header class="header">
+            <div class="header-content">
+                <h1>🚌 Dashboard Sistema de Transporte</h1>
+                <p class="subtitle">Monitoreo en Tiempo Real de Sensores y Actuadores</p>
+                <div class="connection-status" id="connectionStatus">
+                    <span class="status-dot"></span>
+                    <span id="statusText">Conectando...</span>
+                    <span class="update-time" id="updateTime"></span>
+                </div>
+            </div>
+        </header>
+
+        <div class="container">
+            <!-- Mensajes de error -->
+            <div id="errorMessage" class="error-message" style="display: none;"></div>
+
+            <!-- Sección de Filtros -->
+            <section class="filters-section">
+                <h2>🔍 Filtros</h2>
+                <div class="filters-grid">
+                    <div class="filter-group">
+                        <label for="vehiculo">Vehículo</label>
+                        <select id="vehiculo">
+                            <option value="">Todos los vehículos</option>
+                        </select>
+                    </div>
+
+                    <div class="filter-group">
+                        <label for="conductor">Conductor</label>
+                        <select id="conductor">
+                            <option value="">Todos los conductores</option>
+                        </select>
+                    </div>
+
+                    <div class="filter-group">
+                        <label for="ruta">Ruta</label>
+                        <select id="ruta">
+                            <option value="">Todas las rutas</option>
+                        </select>
+                    </div>
+
+                    <div class="filter-group">
+                        <label for="parada">Parada</label>
+                        <select id="parada">
+                            <option value="">Todas las paradas</option>
+                        </select>
+                    </div>
+
+                    <div class="filter-group">
+                        <label for="fechaInicio">Fecha Inicio</label>
+                        <input type="datetime-local" id="fechaInicio">
+                    </div>
+
+                    <div class="filter-group">
+                        <label for="fechaFin">Fecha Fin</label>
+                        <input type="datetime-local" id="fechaFin">
+                    </div>
+                </div>
+
+                <div class="filter-actions">
+                    <button class="btn btn-primary" id="btnApplyFilters">Aplicar Filtros</button>
+                    <button class="btn btn-secondary" id="btnResetFilters">Limpiar Filtros</button>
+                    <label class="auto-refresh-toggle">
+                        <input type="checkbox" id="autoRefresh" checked>
+                        <span>Actualización automática (5s)</span>
+                    </label>
+                </div>
+            </section>
+
+            <!-- KPIs -->
+            <section class="kpis-section">
+                <div class="kpi-card">
+                    <div class="kpi-icon">🚗</div>
+                    <div class="kpi-content">
+                        <div class="label">Vehículos Activos</div>
+                        <div class="value" id="kpiVehiculos">0</div>
+                    </div>
+                </div>
+
+                <div class="kpi-card">
+                    <div class="kpi-icon">🗺️</div>
+                    <div class="kpi-content">
+                        <div class="label">Total de Viajes</div>
+                        <div class="value" id="kpiViajes">0</div>
+                    </div>
+                </div>
+
+                <div class="kpi-card">
+                    <div class="kpi-icon">📊</div>
+                    <div class="kpi-content">
+                        <div class="label">Lecturas Registradas</div>
+                        <div class="value" id="kpiLecturas">0</div>
+                    </div>
+                </div>
+
+                <div class="kpi-card">
+                    <div class="kpi-icon">👥</div>
+                    <div class="kpi-content">
+                        <div class="label">Capacidad Promedio</div>
+                        <div class="value"><span id="kpiCapacidad">0</span> <span class="unit">pasajeros</span></div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Gráficas Individuales -->
+            <section class="charts-container">
+                <h2>📈 Monitoreo de Sensores y Actuadores en Tiempo Real</h2>
+
+                <!-- 1. Temperatura - Ventilador -->
+                <div class="chart-card">
+                    <div class="chart-header">
+                        <h3>🌡️ Temperatura - Ventilador</h3>
+                        <span class="chart-badge">DHT11</span>
+                    </div>
+                    <div class="chart-wrapper">
+                        <canvas id="chartTemperatura"></canvas>
+                    </div>
+                    <div class="chart-footer">
+                        <span class="sensor-info">Sensor: DHT11</span>
+                        <span class="actuador-info">Actuador: Ventilador</span>
+                    </div>
+                </div>
+
+                <!-- 2. Distancia - Buzzer -->
+                <div class="chart-card">
+                    <div class="chart-header">
+                        <h3>📏 Distancia - Buzzer</h3>
+                        <span class="chart-badge">Ultrasonido</span>
+                    </div>
+                    <div class="chart-wrapper">
+                        <canvas id="chartDistancia"></canvas>
+                    </div>
+                    <div class="chart-footer">
+                        <span class="sensor-info">Sensor: HC-SR04</span>
+                        <span class="actuador-info">Actuador: Buzzer</span>
+                    </div>
+                </div>
+
+                <!-- 3. Luz - Luces -->
+                <div class="chart-card">
+                    <div class="chart-header">
+                        <h3>💡 Iluminación - Luces</h3>
+                        <span class="chart-badge">Fotorresistor</span>
+                    </div>
+                    <div class="chart-wrapper">
+                        <canvas id="chartLuz"></canvas>
+                    </div>
+                    <div class="chart-footer">
+                        <span class="sensor-info">Sensor: LDR</span>
+                        <span class="actuador-info">Actuador: LEDs</span>
+                    </div>
+                </div>
+
+                <!-- 4. PIR - Puertas -->
+                <div class="chart-card">
+                    <div class="chart-header">
+                        <h3>🚪 Movimiento - Puertas</h3>
+                        <span class="chart-badge">Servomotores</span>
+                    </div>
+                    <div class="chart-wrapper">
+                        <canvas id="chartPIR"></canvas>
+                    </div>
+                    <div class="chart-footer">
+                        <span class="sensor-info">Sensor: PIR (Entrada/Salida)</span>
+                        <span class="actuador-info">Actuador: Servomotores</span>
+                    </div>
+                </div>
+
+                <!-- 5. Botón - Pantalla -->
+                <div class="chart-card">
+                    <div class="chart-header">
+                        <h3>🖲️ Botón - Pantalla LCD</h3>
+                        <span class="chart-badge">Display</span>
+                    </div>
+                    <div class="chart-wrapper">
+                        <canvas id="chartBoton"></canvas>
+                    </div>
+                    <div class="chart-footer">
+                        <span class="sensor-info">Sensor: Botón</span>
+                        <span class="actuador-info">Actuador: LCD 16x2</span>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Leyenda General -->
+            <section class="legend-section">
+                <h3>📖 Leyenda</h3>
+                <div class="legend-grid">
+                    <div class="legend-item">
+                        <span class="legend-color" style="background: rgb(54, 162, 235);"></span>
+                        <strong>Línea Azul (Eje Izquierdo):</strong> Valores de sensores (temperatura, distancia, luz, etc.)
+                    </div>
+                    <div class="legend-item">
+                        <span class="legend-color" style="background: rgb(75, 192, 192);"></span>
+                        <strong>Línea Verde (Eje Derecho):</strong> Estado del actuador (1 = Activado, 0 = Desactivado)
+                    </div>
+                </div>
+                <p class="chart-info">
+                    <em>Las gráficas se actualizan automáticamente cada 5 segundos cuando está habilitada la opción</em>
+                </p>
+            </section>
+        </div>
+
+        <!-- Footer -->
+        <footer class="footer">
+            <p>&copy; 2024 Sistema de Transporte - Dashboard en Tiempo Real</p>
+        </footer>
+    </div>
+
+    <script src="js/app.js"></script>
+</body>
+</html>
